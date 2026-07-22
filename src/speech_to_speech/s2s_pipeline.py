@@ -30,6 +30,7 @@ from speech_to_speech.arguments_classes.faster_whisper_stt_arguments import (
     FasterWhisperSTTHandlerArguments,
 )
 from speech_to_speech.arguments_classes.kokoro_tts_arguments import KokoroTTSHandlerArguments
+from speech_to_speech.arguments_classes.kyutai_tts_arguments import KyutaiTTSHandlerArguments
 from speech_to_speech.arguments_classes.language_model_arguments import LanguageModelHandlerArguments
 from speech_to_speech.arguments_classes.mlx_audio_whisper_arguments import (
     MLXAudioWhisperSTTHandlerArguments,
@@ -107,6 +108,7 @@ class ParsedArguments:
     pocket_tts_handler_kwargs: PocketTTSHandlerArguments
     kokoro_tts_handler_kwargs: KokoroTTSHandlerArguments
     qwen3_tts_handler_kwargs: Qwen3TTSHandlerArguments
+    kyutai_tts_handler_kwargs: KyutaiTTSHandlerArguments
 
 
 def rename_args(args: Any, prefix: str) -> None:
@@ -165,6 +167,7 @@ def parse_arguments() -> ParsedArguments:
             PocketTTSHandlerArguments,
             KokoroTTSHandlerArguments,
             Qwen3TTSHandlerArguments,
+            KyutaiTTSHandlerArguments,
         )
     )
 
@@ -200,6 +203,7 @@ def parse_arguments() -> ParsedArguments:
         pocket_tts_handler_kwargs=by_type[PocketTTSHandlerArguments],
         kokoro_tts_handler_kwargs=by_type[KokoroTTSHandlerArguments],
         qwen3_tts_handler_kwargs=by_type[Qwen3TTSHandlerArguments],
+        kyutai_tts_handler_kwargs=by_type[KyutaiTTSHandlerArguments],
     )
 
 
@@ -300,6 +304,7 @@ def prepare_all_args(
     pocket_tts_handler_kwargs: PocketTTSHandlerArguments,
     kokoro_tts_handler_kwargs: KokoroTTSHandlerArguments,
     qwen3_tts_handler_kwargs: Qwen3TTSHandlerArguments,
+    kyutai_tts_handler_kwargs: KyutaiTTSHandlerArguments,
 ) -> None:
     prepare_module_args(
         module_kwargs,
@@ -315,6 +320,7 @@ def prepare_all_args(
         pocket_tts_handler_kwargs,
         kokoro_tts_handler_kwargs,
         qwen3_tts_handler_kwargs,
+        kyutai_tts_handler_kwargs,
     )
 
     rename_args(whisper_stt_handler_kwargs, "stt")
@@ -329,6 +335,7 @@ def prepare_all_args(
     rename_args(pocket_tts_handler_kwargs, "pocket_tts")
     rename_args(kokoro_tts_handler_kwargs, "kokoro")
     rename_args(qwen3_tts_handler_kwargs, "qwen3_tts")
+    rename_args(kyutai_tts_handler_kwargs, "kyutai_tts")
 
 
 def initialize_queues_and_events() -> dict[str, Any]:
@@ -375,6 +382,7 @@ def _build_pipeline_handlers(
     pocket_tts_handler_kwargs: PocketTTSHandlerArguments,
     kokoro_tts_handler_kwargs: KokoroTTSHandlerArguments,
     qwen3_tts_handler_kwargs: Qwen3TTSHandlerArguments,
+    kyutai_tts_handler_kwargs: KyutaiTTSHandlerArguments,
     speculative_turns: SpeculativeTurnTracker | None = None,
 ) -> list[Any]:
     """Build the shared handler chain: VAD → STT → TranscriptionNotifier → LM → LMOutputProcessor → TTS.
@@ -440,6 +448,7 @@ def _build_pipeline_handlers(
         pocket_tts_handler_kwargs,
         kokoro_tts_handler_kwargs,
         qwen3_tts_handler_kwargs,
+        kyutai_tts_handler_kwargs,
     )
 
     return [vad, stt, transcription_notifier, lm, lm_processor, tts]
@@ -463,6 +472,7 @@ def _build_realtime_pipeline_unit(
     pocket_tts_handler_kwargs: PocketTTSHandlerArguments,
     kokoro_tts_handler_kwargs: KokoroTTSHandlerArguments,
     qwen3_tts_handler_kwargs: Qwen3TTSHandlerArguments,
+    kyutai_tts_handler_kwargs: KyutaiTTSHandlerArguments,
 ) -> "PipelineUnit":
     """Build one isolated realtime pipeline (own queues, events, service, handlers).
 
@@ -486,6 +496,7 @@ def _build_realtime_pipeline_unit(
     pocket_tts_kw = deepcopy(pocket_tts_handler_kwargs)
     kokoro_tts_kw = deepcopy(kokoro_tts_handler_kwargs)
     qwen3_tts_kw = deepcopy(qwen3_tts_handler_kwargs)
+    kyutai_tts_kw = deepcopy(kyutai_tts_handler_kwargs)
 
     should_listen = Event()
     response_playing = Event()
@@ -507,6 +518,7 @@ def _build_realtime_pipeline_unit(
         responses_api_kw,
         kokoro_tts_kw,
         qwen3_tts_kw,
+        kyutai_tts_kw,
         pocket_tts_kw,
         chat_tts_kw,
         facebook_mms_kw,
@@ -559,6 +571,7 @@ def _build_realtime_pipeline_unit(
         pocket_tts_handler_kwargs=pocket_tts_kw,
         kokoro_tts_handler_kwargs=kokoro_tts_kw,
         qwen3_tts_handler_kwargs=qwen3_tts_kw,
+        kyutai_tts_handler_kwargs=kyutai_tts_kw,
         speculative_turns=speculative_turns,
     )
     for h in handlers:
@@ -596,6 +609,7 @@ def build_pipeline(
     pocket_tts_handler_kwargs: PocketTTSHandlerArguments,
     kokoro_tts_handler_kwargs: KokoroTTSHandlerArguments,
     qwen3_tts_handler_kwargs: Qwen3TTSHandlerArguments,
+    kyutai_tts_handler_kwargs: KyutaiTTSHandlerArguments,
     queues_and_events: dict[str, Any],
 ) -> ThreadManager:
     stop_event = queues_and_events["stop_event"]
@@ -658,6 +672,7 @@ def build_pipeline(
                 pocket_tts_handler_kwargs=pocket_tts_handler_kwargs,
                 kokoro_tts_handler_kwargs=kokoro_tts_handler_kwargs,
                 qwen3_tts_handler_kwargs=qwen3_tts_handler_kwargs,
+                kyutai_tts_handler_kwargs=kyutai_tts_handler_kwargs,
             )
             for i in range(pool_size)
         ]
@@ -742,6 +757,7 @@ def build_pipeline(
         pocket_tts_handler_kwargs=pocket_tts_handler_kwargs,
         kokoro_tts_handler_kwargs=kokoro_tts_handler_kwargs,
         qwen3_tts_handler_kwargs=qwen3_tts_handler_kwargs,
+        kyutai_tts_handler_kwargs=kyutai_tts_handler_kwargs,
     )
 
     return ThreadManager([*comms_handlers, *pipeline_handlers])
@@ -915,6 +931,7 @@ def get_tts_handler(
     pocket_tts_handler_kwargs: PocketTTSHandlerArguments,
     kokoro_tts_handler_kwargs: KokoroTTSHandlerArguments,
     qwen3_tts_handler_kwargs: Qwen3TTSHandlerArguments,
+    kyutai_tts_handler_kwargs: KyutaiTTSHandlerArguments,
 ) -> BaseHandler[TTSIn, TTSOut]:
     if module_kwargs.tts == "chatTTS":
         try:
@@ -977,8 +994,23 @@ def get_tts_handler(
             setup_args=(should_listen,),
             setup_kwargs=vars(qwen3_tts_handler_kwargs),
         )
+    elif module_kwargs.tts == "kyutai-tts":
+        try:
+            from speech_to_speech.TTS.kyutai_tts_handler import KyutaiTTSHandler
+        except ImportError as e:
+            raise ImportError(
+                'Kyutai TTS is optional. Install it with `pip install "speech-to-speech[kyutai]"`.'
+            ) from e
+
+        return KyutaiTTSHandler(
+            stop_event,
+            queue_in=lm_response_queue,
+            queue_out=send_audio_chunks_queue,
+            setup_args=(should_listen,),
+            setup_kwargs=vars(kyutai_tts_handler_kwargs),
+        )
     else:
-        raise ValueError("The TTS should be either chatTTS, facebookMMS, pocket, kokoro, or qwen3")
+        raise ValueError("The TTS should be either chatTTS, facebookMMS, pocket, kokoro, qwen3, or kyutai-tts")
 
 
 def main() -> None:
@@ -1003,6 +1035,7 @@ def main() -> None:
         args.pocket_tts_handler_kwargs,
         args.kokoro_tts_handler_kwargs,
         args.qwen3_tts_handler_kwargs,
+        args.kyutai_tts_handler_kwargs,
     )
 
     # Validate after prepare_all_args(): --local_mac_optimal_settings mutates
@@ -1047,6 +1080,7 @@ def main() -> None:
         args.pocket_tts_handler_kwargs,
         args.kokoro_tts_handler_kwargs,
         args.qwen3_tts_handler_kwargs,
+        args.kyutai_tts_handler_kwargs,
         queues_and_events,
     )
 

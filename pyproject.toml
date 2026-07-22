@@ -74,6 +74,14 @@ faster-whisper = [
 kokoro = [
     "kokoro>=0.9.2; platform_system != 'Darwin'",
 ]
+kyutai = [
+    # Kyutai Delayed-Streams-Modeling TTS (e.g. kyutai/tts-1.6b-en_fr), served via moshi.
+    # NOTE: moshi caps huggingface-hub<1.0, safetensors<0.8 and torch<2.10, so installing this
+    # extra resolves transformers to the 4.57.x line and pins torch<2.10 (a newer torch/torchaudio
+    # already present will be downgraded to a matching pair). Use a dedicated environment if you
+    # need to keep a newer transformers/torch for other work.
+    "moshi>=0.2.11",
+]
 language-detection = [
     "lingua-language-detector>=2.0.2",
 ]

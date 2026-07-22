@@ -127,6 +127,7 @@ Extra backends are installed with pip extras:
 ```bash
 pip install "speech-to-speech[kokoro]"          # Kokoro-82M TTS on non-macOS
 pip install "speech-to-speech[pocket]"          # Pocket TTS
+pip install "speech-to-speech[kyutai]"          # Kyutai DSM TTS (kyutai/tts-1.6b-en_fr) via moshi
 pip install "speech-to-speech[chattts]"         # ChatTTS
 pip install "speech-to-speech[facebook-mms]"    # MMS TTS
 pip install "speech-to-speech[faster-whisper]"  # Faster Whisper STT
@@ -166,6 +167,7 @@ This installs the package in editable mode and makes the `speech-to-speech` CLI 
 | TTS | [Qwen3-TTS](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice) (default) | GGML / CUDA on Linux, mlx-audio on macOS | built-in |
 | TTS | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) | CUDA / CPU, Apple Silicon | `kokoro` on non-macOS; built-in on macOS |
 | TTS | [Pocket TTS](https://github.com/kyutai-labs/pocket-tts) | CPU / CUDA | `pocket` |
+| TTS | [Kyutai TTS](https://huggingface.co/kyutai/tts-1.6b-en_fr) (en/fr) | CUDA / CPU | `kyutai-tts` (needs `[kyutai]`) |
 | TTS | [ChatTTS](https://github.com/2noise/ChatTTS) | CUDA / CPU | `chattts` |
 | TTS | [MMS TTS](https://huggingface.co/docs/transformers/model_doc/mms) | CUDA / CPU | `facebook-mms` |
 

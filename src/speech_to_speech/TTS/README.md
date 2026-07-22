@@ -9,6 +9,7 @@ Runtime-supported values in `s2s_pipeline.py`:
 - `pocket` → `pocket_tts_handler.py`
 - `kokoro` → `kokoro_handler.py`
 - `qwen3` → `qwen3_tts_handler.py`
+- `kyutai-tts` → `kyutai_tts_handler.py`
 
 Deprecated TTS implementations, including MeloTTS, live in [`../../../archive/TTS`](../../../archive/TTS) and are no longer wired into `s2s_pipeline.py`.
 
@@ -134,6 +135,42 @@ To benchmark the Apple Silicon MLX variants side by side:
 ```
 
 This will run separate benchmark entries for `qwen3[bf16]`, `qwen3[4bit]`, `qwen3[6bit]`, and `qwen3[8bit]`.
+
+### 6) Kyutai TTS (`--tts kyutai-tts`)
+
+Primary args prefix: `--kyutai_tts_*`
+
+Streaming TTS using Kyutai's Delayed-Streams-Modeling (DSM) models, served through the
+[`moshi`](https://github.com/kyutai-labs/delayed-streams-modeling) library. The default model
+`kyutai/tts-1.6b-en_fr` supports English and French and is conditioned on voice embeddings from
+the [`kyutai/tts-voices`](https://huggingface.co/kyutai/tts-voices) repository.
+
+```bash
+python s2s_pipeline.py \
+  --tts kyutai-tts \
+  --kyutai_tts_device cuda \
+  --kyutai_tts_voice expresso/ex03-ex01_happy_001_channel1_334s.wav \
+  --kyutai_tts_cfg_coef 2.0
+```
+
+Behavior:
+- Works on CUDA and CPU (bfloat16 on CUDA/MPS, float32 on CPU by default; override with `--kyutai_tts_dtype`).
+- Decodes mimi codec frames incrementally (12.5 Hz) to 24kHz PCM and resamples to the 16kHz pipeline rate.
+- Voices are given as paths within the voice repo (e.g. `expresso/....wav`), an `hf://REPO/PATH` reference, or a local `.safetensors` voice-embedding file.
+- Realtime session voice overrides are honored only when they look like a kyutai voice path; generic OpenAI voice names are ignored with a warning.
+
+Install:
+
+```bash
+pip install "speech-to-speech[kyutai]"
+```
+
+> **Dependency note:** `moshi` caps `huggingface-hub<1.0`, `safetensors<0.8`, and `torch<2.10`.
+> Installing the `[kyutai]` extra therefore resolves `transformers` to the `4.57.x` line (the lower
+> end of this project's supported range) and pins `torch<2.10`, rather than the newest
+> `transformers`/`torch`. If you already have a newer `torch`/`torchaudio` installed, expect them to
+> be downgraded to a matching pair (e.g. `torch==2.9.1` + `torchaudio==2.9.1`). For an install that
+> leaves your main stack untouched, use a dedicated environment for Kyutai TTS.
 
 ## Setup
 
